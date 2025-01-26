@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather in Prichard</title>
+    <link rel="stylesheet" href="2462257_SulavPoudyal_weatherApp.css" />
+  </head>
+  <body>
+    <div class="container">
+      <main class="content">
+        <header class="search-bar">
+          <input
+            type="search"
+            placeholder="Search for cities.........................."
+            id="search"
+          />
+          <button id="city-search-weather">Search</button>
+        </header>
+        <section class="main-weather">
+          <div class="weather-info">
+            <h1 id="name">Prichard</h1>
+            <h2 id="temperature">10°C</h2>
+            <div id="icon-container">
+              <img
+                src="https://openweathermap.org/img/wn/02d@2x.png"
+                alt="Weather Icon"
+              />
+            </div>
+            <h2 id="condition">Mostly Cloudy</h2>
+            <h2 id="date">Date: <span id="current-date"></span></h2>
+          </div>
+        </section>
+        <div class="weather-detail">
+          <section class="air-conditions">
+            <div class="grid-container">
+              <div class="weather-bordered-cards">
+                <h4>Precipitation</h4>
+                <br />
+                <p id="precipitation">10%</p>
+              </div>
+              <div class="weather-bordered-cards">
+                <h4>Humidity</h4>
+                <br />
+                <p id="humidity">54%</p>
+              </div>
+              <div class="weather-bordered-cards">
+                <h4>Wind</h4>
+                <br />
+                <p id="wind">8 km/h</p>
+              </div>
+              <div class="weather-bordered-cards">
+                <h4>Air Quality</h4>
+                <br />
+                <p id="airQuality">moderate</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+    <script src="2462257_SulavPoudyal_weatherApp.js"></script>
+  </body>
+</html>
