@@ -9,41 +9,52 @@ const wind = document.getElementById("wind");
 const airQuality = document.getElementById("airQuality");
 
 async function fetchWeatherData(city) {
-  const apiKey = "730e06276ae1ea2fc77f8dd5a853494d";
-  const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`;
-
   try {
-    const response = await fetch(apiUrl);
+    const response = await fetch(
+      `http://localhost/Prototype2/connection.php?q=${city}`
+    );
+
+    // Check if the response status is OK (200)
     if (!response.ok) {
-      throw new Error("City not found.................!!!");
+      throw new Error("Network response was not ok");
     }
+
     const data = await response.json();
+
+    // Check if the data returned from PHP is as expected
+    console.log("Weather Data:", data);
+
     updateWeatherData(data);
   } catch (error) {
-    alert(error.message);
+    console.error("Error fetching weather data:", error);
+    alert("Error fetching weather data. Please check the console for details.");
   }
 }
 
 function updateWeatherData(data) {
-  cityName.textContent = `${data.name} ${
-    data.sys.country ? `, ${data.sys.country}` : ""
-  }`;
-  temperature.innerHTML = `${Math.round(data.main.temp)}°C`;
+  cityName.textContent = `${data.city}`;
+  temperature.innerHTML = `${Math.round(data.temperature)}°C`;
+  weatherCondition.textContent = data.condition;
 
   const iconContainer = document.getElementById("icon-container");
-  iconContainer.innerHTML = `<img src="https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png" alt="Weather Icon">`;
+  // Use the icon URL returned from PHP
+  iconContainer.innerHTML = `<img src="https://openweathermap.org/img/wn/${data.icon}@2x.png" alt="Weather Icon">`;
 
-  dateElement.textContent = `Date: ${new Date().toISOString().split("T")[0]}`;
-  precipitation.textContent = `${data.clouds.all}%`;
-  humidity.textContent = `${data.main.humidity}%`;
-  wind.textContent = `${data.wind.speed} km/h`;
-  airQuality.textContent = "moderate";
+  dateElement.textContent = `Date: ${
+    new Date(data.date).toISOString().split("T")[0]
+  }`;
+  precipitation.textContent = `${data.precipitation}%`;
+  humidity.textContent = `${data.humidity}%`;
+  wind.textContent = `${data.wind} km/h`;
+  airQuality.textContent = data.airQuality;
 }
 
+// Set current date when the page loads
 document.getElementById("current-date").textContent = new Date()
   .toISOString()
   .split("T")[0];
 
+// Event listener for the search button
 let searchButton = document.getElementById("city-search-weather");
 searchButton.addEventListener("click", async () => {
   const city = searchInput.value.trim();
@@ -52,6 +63,7 @@ searchButton.addEventListener("click", async () => {
   }
 });
 
+// Event listener for pressing Enter key in the search input field
 searchInput.addEventListener("keypress", async (event) => {
   if (event.key === "Enter") {
     const city = searchInput.value.trim();
