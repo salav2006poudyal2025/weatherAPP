@@ -4,19 +4,22 @@ header("Content-Type: application/json");
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
+// Database connection
 $serverName = "localhost";
 $userName = "root"; 
 $password = ""; 
 $conn = mysqli_connect($serverName, $userName, $password);
 
 if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
+    http_response_code(500);
+    die(json_encode(["error" => "Database connection failed."]));
 }
 
 // Create Database if it doesn't exist
 $createDatabase = "CREATE DATABASE IF NOT EXISTS prototype2";
 if (!mysqli_query($conn, $createDatabase)) {
-    die("Failed to create database: " . mysqli_connect_error());
+    http_response_code(500);
+    die(json_encode(["error" => "Failed to create database."]));
 }
 
 // Select the database
@@ -35,48 +38,50 @@ $createTable = "CREATE TABLE IF NOT EXISTS weatherr (
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );";
 
-// Execute the query and check for errors
 if (!mysqli_query($conn, $createTable)) {
-    die("Failed to create table: " . mysqli_error($conn));
+    http_response_code(500);
+    die(json_encode(["error" => "Failed to create table."]));
 }
 
-$cityName = isset($_GET['q']) ? $_GET['q'] : 'Prichard'; // Default city is Prichard
+// Get city from query parameter
+$cityName = isset($_GET['q']) ? $_GET['q'] : 'Prichard';
+$cityName = mysqli_real_escape_string($conn, $cityName);
 
-// Check if the data exists for the specified city
-$selectAllData = "SELECT * FROM weatherr WHERE city = '$cityName' AND timestamp > NOW() - INTERVAL 2 HOUR";
-$result = mysqli_query($conn, $selectAllData);
+// Check for cached data in the database
+$selectData = "SELECT * FROM weatherr WHERE city = '$cityName' AND timestamp > NOW() - INTERVAL 2 HOUR";
+$result = mysqli_query($conn, $selectData);
 
-// If no data, fetch from OpenWeatherMap API
+// If no cached data, fetch from OpenWeatherMap API
 if (mysqli_num_rows($result) == 0) {
-    $apiKey = "730e06276ae1ea2fc77f8dd5a853494d"; 
+    $apiKey = "730e06276ae1ea2fc77f8dd5a853494d";
     $url = "https://api.openweathermap.org/data/2.5/weather?q=$cityName&units=metric&appid=$apiKey";
     $response = file_get_contents($url);
     $data = json_decode($response, true);
 
     if ($data && $data['cod'] == 200) {
-        // Extract weather data
-        $temperature = $data['main']['temp'];
+        $temperature = round($data['main']['temp']);
         $condition = $data['weather'][0]['description'];
-        $precipitation = $data['clouds']['all']; 
+        $precipitation = $data['clouds']['all'];
         $humidity = $data['main']['humidity'];
         $wind = $data['wind']['speed'];
-        $airQuality = "moderate"; 
-        $icon = $data['weather'][0]['icon']; 
+        $airQuality = "Good"; // Static value; replace with real API data if available
+        $icon = $data['weather'][0]['icon'];
 
-        // Insert data into the database
         $insertData = "INSERT INTO weatherr (city, temperature, `condition`, precipitation, humidity, wind, air_quality, icon)
                        VALUES ('$cityName', '$temperature', '$condition', '$precipitation', '$humidity', '$wind', '$airQuality', '$icon')";
         if (!mysqli_query($conn, $insertData)) {
-            die("Failed to insert data: " . mysqli_error($conn));
+            http_response_code(500);
+            die(json_encode(["error" => "Failed to insert data."]));
         }
     } else {
-        die("Error fetching data from OpenWeatherMap API.");
+        http_response_code(404);
+        die(json_encode(["error" => "City not found."]));
     }
 }
 
 // Fetch the latest data for the city
-$selectAllData = "SELECT * FROM weatherr WHERE city = '$cityName' ORDER BY timestamp DESC LIMIT 1";
-$result = mysqli_query($conn, $selectAllData);
+$selectData = "SELECT * FROM weatherr WHERE city = '$cityName' ORDER BY timestamp DESC LIMIT 1";
+$result = mysqli_query($conn, $selectData);
 $weatherData = mysqli_fetch_assoc($result);
 
 $responseData = [
@@ -87,12 +92,10 @@ $responseData = [
     "humidity" => $weatherData['humidity'],
     "wind" => $weatherData['wind'],
     "airQuality" => $weatherData['air_quality'],
-    "icon" => $weatherData['icon'], 
+    "icon" => $weatherData['icon'],
     "date" => $weatherData['timestamp']
 ];
 
-// Encode the data as JSON and return it
 echo json_encode($responseData);
-
 mysqli_close($conn);
 ?>

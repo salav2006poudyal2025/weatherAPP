@@ -10,19 +10,32 @@ const airQuality = document.getElementById("airQuality");
 
 async function fetchWeatherData(city) {
   try {
+    if (!navigator.onLine) {
+      alert("You are offline. Please check your internet connection.");
+      const cachedData = localStorage.getItem(city);
+      if (cachedData) {
+        // Parse and update with cached data
+        updateWeatherData(JSON.parse(cachedData));
+      } else {
+        alert("No cached data available. Please try again later.");
+      }
+      return;
+    }
+
     const response = await fetch(
       `http://localhost/Prototype2/connection.php?q=${city}`
     );
 
-    // Check if the response status is OK (200)
+    // Check if response is successful
     if (!response.ok) {
-      throw new Error("Network response was not ok");
+      throw new Error("City not found or server error.");
     }
 
     const data = await response.json();
-
-    // Check if the data returned from PHP is as expected
     console.log("Weather Data:", data);
+
+    // Cache the data in localStorage for offline use
+    localStorage.setItem(city, JSON.stringify(data));
 
     updateWeatherData(data);
   } catch (error) {
@@ -37,7 +50,6 @@ function updateWeatherData(data) {
   weatherCondition.textContent = data.condition;
 
   const iconContainer = document.getElementById("icon-container");
-  // Use the icon URL returned from PHP
   iconContainer.innerHTML = `<img src="https://openweathermap.org/img/wn/${data.icon}@2x.png" alt="Weather Icon">`;
 
   dateElement.textContent = `Date: ${
@@ -60,6 +72,8 @@ searchButton.addEventListener("click", async () => {
   const city = searchInput.value.trim();
   if (city) {
     await fetchWeatherData(city);
+  } else {
+    alert("Please enter a city name.");
   }
 });
 
@@ -69,6 +83,8 @@ searchInput.addEventListener("keypress", async (event) => {
     const city = searchInput.value.trim();
     if (city) {
       await fetchWeatherData(city);
+    } else {
+      alert("Please enter a city name.");
     }
   }
 });
