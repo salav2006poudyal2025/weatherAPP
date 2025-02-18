@@ -5,9 +5,9 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 // Database connection
-$serverName = "localhost";
-$userName = "root"; 
-$password = ""; 
+$serverName = "sql300.infinityfree.com"; 
+$userName = "if0_38279153";
+$password = "qRgnn9PqXLk9I";
 $conn = mysqli_connect($serverName, $userName, $password);
 
 if (!$conn) {
@@ -16,14 +16,14 @@ if (!$conn) {
 }
 
 // Create Database if it doesn't exist
-$createDatabase = "CREATE DATABASE IF NOT EXISTS prototype2";
+$createDatabase = "CREATE DATABASE IF NOT EXISTS if0_38279153_sulavdb";
 if (!mysqli_query($conn, $createDatabase)) {
     http_response_code(500);
     die(json_encode(["error" => "Failed to create database."]));
 }
 
 // Select the database
-mysqli_select_db($conn, 'prototype2');
+mysqli_select_db($conn, 'if0_38279153_sulavdb');
 
 // Create table if it doesn't exist
 $createTable = "CREATE TABLE IF NOT EXISTS weatherr (
